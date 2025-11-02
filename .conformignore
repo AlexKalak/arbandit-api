@@ -1,0 +1,10 @@
+# Ignore JS and TS files
+*.js
+*.jsx
+*.ts
+*.tsx
+
+# Ignore build and dependencies
+node_modules
+dist
+build
