@@ -1,0 +1,76 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Query {
+  v3pools(first: Int, skip: Int, where: V3PoolWhere): [V3Pool!]!
+  v3transactions(first: Int, skip: Int, where: V3TransactionWhere): [V3Transaction!]!
+}
+
+type Token {
+  address: String!
+  chainId: Int!
+  decimals: Int!
+  defiScaledUsdPrice: String!
+  logoUri: String!
+  name: String!
+  symbol: String!
+}
+
+type V3Pool {
+  address: String!
+  amount0: String!
+  amount1: String!
+  blockNumber: Int!
+  chainId: Int!
+  exchangeName: String!
+  feeTier: Int!
+  isDusty: Boolean!
+  liquidity: String!
+  nearTicks: String!
+  nonZfo_10usdRate: String!
+  sqrtPriceX96: String!
+  tick: Int!
+  tickLower: Int!
+  tickSpacing: Int!
+  tickUpper: Int!
+  token0: Token!
+  token0Address: String!
+  token1: Token!
+  token1Address: String!
+  zfo_10usdRate: String!
+}
+
+input V3PoolWhere {
+  address: String
+  chainId: Float
+  id: Float
+  isDusty: Boolean
+  liquidity: String
+  tick: Float
+  tick_gt: Float
+  token0Address: String
+  token0Symbol: String
+  token1Address: String
+  token1Symbol: String
+}
+
+type V3Transaction {
+  amount0: String!
+  amount1: String!
+  archiveToken0UsdPrice: String!
+  archiveToken1UsdPrice: String!
+  blockNumber: String!
+  chainId: String!
+  id: String!
+  pool: V3Pool
+  poolAddress: String!
+  txHash: String!
+}
+
+input V3TransactionWhere {
+  blockNumber: Float
+  chainId: Float
+  id: Float
+  txHash: String
+}

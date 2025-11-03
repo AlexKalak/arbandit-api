@@ -2,7 +2,6 @@ import { Controller, Get } from '@nestjs/common';
 
 import { AppService } from './app.service';
 import { V3TransactionService } from './v3transactions/v3transaction.service';
-import { V3Transaction } from './v3transactions/v3transaction.model';
 
 @Controller()
 export class AppController {
@@ -12,8 +11,7 @@ export class AppController {
   ) {}
 
   @Get()
-  async getHello(): Promise<V3Transaction[]> {
-    const res = await this.v3TransactionService.findAll();
-    return res;
+  getHello(): string {
+    return 'hello';
   }
 }

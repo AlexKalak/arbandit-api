@@ -1,0 +1,72 @@
+import { Injectable, Inject } from '@nestjs/common';
+import { Repository } from 'typeorm';
+import { V3Pool, V3PoolWhere } from './v3pool.model';
+
+@Injectable()
+export class V3PoolService {
+  constructor(
+    @Inject('V3_POOL_REPOSITORY')
+    private v3PoolRepository: Repository<V3Pool>,
+  ) {}
+
+  async findAll(
+    first: number,
+    skip: number,
+    where?: V3PoolWhere,
+  ): Promise<V3Pool[]> {
+    if (!where) {
+      return this.v3PoolRepository.find({
+        skip: skip,
+        take: first,
+      });
+    }
+
+    const queryBuilder = this.v3PoolRepository
+      .createQueryBuilder('pool')
+      .leftJoinAndSelect('pool.token0', 'token0')
+      .leftJoinAndSelect('pool.token1', 'token1');
+
+    if (where.token0Symbol) {
+      queryBuilder.andWhere(`token0.symbol = :symbol0`, {
+        symbol0: where.token0Symbol,
+      });
+    }
+    if (where.token1Symbol) {
+      queryBuilder.andWhere(`token1.symbol = :symbol1`, {
+        symbol1: where.token1Symbol,
+      });
+    }
+
+    console.log(queryBuilder.getSql());
+
+    const metadata = this.v3PoolRepository.metadata;
+
+    for (const [key, value] of Object.entries(where)) {
+      if (value === null || value === undefined) {
+        continue;
+      }
+
+      const [field, operatorSuffix] = key.split('_');
+      const operator =
+        { gt: '>', gte: '>=', lt: '<', lte: '<=', neq: '!=' }[operatorSuffix] ||
+        '=';
+
+      const column = metadata.findColumnWithPropertyName(field);
+      if (!column) {
+        continue;
+      }
+      console.log(column.databaseName);
+
+      queryBuilder.andWhere(`pool.${column.databaseName} ${operator} :${key}`, {
+        [key]: value as string | number | boolean,
+      });
+    }
+
+    const pools = queryBuilder.take(first).skip(skip).getMany();
+    return pools;
+  }
+
+  async findByAddress(address: string): Promise<V3Pool | null> {
+    return this.v3PoolRepository.findOneBy({ address: address });
+  }
+}
