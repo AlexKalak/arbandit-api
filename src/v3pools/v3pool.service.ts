@@ -1,12 +1,14 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { V3Pool, V3PoolWhere } from './v3pool.model';
+import { GqlWhereParsingService } from 'src/database/gqlWhereParsing.service';
 
 @Injectable()
 export class V3PoolService {
   constructor(
     @Inject('V3_POOL_REPOSITORY')
     private v3PoolRepository: Repository<V3Pool>,
+    private gqlWhereParsingService: GqlWhereParsingService,
   ) {}
 
   async findAll(
@@ -37,32 +39,12 @@ export class V3PoolService {
       });
     }
 
-    console.log(queryBuilder.getSql());
-
     const metadata = this.v3PoolRepository.metadata;
 
-    for (const [key, value] of Object.entries(where)) {
-      if (value === null || value === undefined) {
-        continue;
-      }
-
-      const [field, operatorSuffix] = key.split('_');
-      const operator =
-        { gt: '>', gte: '>=', lt: '<', lte: '<=', neq: '!=' }[operatorSuffix] ||
-        '=';
-
-      const column = metadata.findColumnWithPropertyName(field);
-      if (!column) {
-        continue;
-      }
-      console.log(column.databaseName);
-
-      queryBuilder.andWhere(`pool.${column.databaseName} ${operator} :${key}`, {
-        [key]: value as string | number | boolean,
-      });
-    }
+    this.gqlWhereParsingService.parse(queryBuilder, where, metadata);
 
     const pools = queryBuilder.take(first).skip(skip).getMany();
+
     return pools;
   }
 

@@ -1,5 +1,29 @@
-import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { Field, InputType, Int, ObjectType } from '@nestjs/graphql';
 import { Column, Entity, Index } from 'typeorm';
+
+@InputType()
+export class TokenWhere {
+  @Field(() => Int, { nullable: true })
+  chainId?: number | null;
+
+  @Field(() => Int, { nullable: true })
+  decimals?: number | null;
+
+  @Field(() => String, { nullable: true })
+  name?: string | null;
+
+  @Field(() => String, { nullable: true })
+  symbol?: string | null;
+
+  @Field(() => String, { nullable: true })
+  address?: string;
+
+  @Field(() => String, { nullable: true })
+  logoUri?: string | null;
+
+  @Field(() => String, { nullable: true })
+  usdPrice?: string;
+}
 
 @ObjectType()
 @Index('tokens_pkey', ['address'], { unique: true })
@@ -30,6 +54,6 @@ export class Token {
   logoUri: string | null;
 
   @Field(() => String)
-  @Column('numeric', { name: 'defi_scaled_usd_price' })
-  defiScaledUsdPrice: string;
+  @Column('numeric', { name: 'usd_price' })
+  usdPrice: string;
 }

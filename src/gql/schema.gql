@@ -3,24 +3,37 @@
 # ------------------------------------------------------
 
 type Query {
+  tokens(first: Int, skip: Int, where: TokenWhere): [Token!]!
   v3pools(first: Int, skip: Int, where: V3PoolWhere): [V3Pool!]!
-  v3transactions(first: Int, skip: Int, where: V3TransactionWhere): [V3Transaction!]!
+  v3transactions(first: Int, fromHead: Boolean, skip: Int, where: V3TransactionWhere): [V3Transaction!]!
+}
+
+type Subscription {
+  transactionAdded(chainId: Int!, poolAddress: String!): V3Transaction!
 }
 
 type Token {
   address: String!
   chainId: Int!
   decimals: Int!
-  defiScaledUsdPrice: String!
   logoUri: String!
   name: String!
   symbol: String!
+  usdPrice: String!
+}
+
+input TokenWhere {
+  address: String
+  chainId: Int
+  decimals: Int
+  logoUri: String
+  name: String
+  symbol: String
+  usdPrice: String
 }
 
 type V3Pool {
   address: String!
-  amount0: String!
-  amount1: String!
   blockNumber: Int!
   chainId: Int!
   exchangeName: String!
@@ -56,21 +69,22 @@ input V3PoolWhere {
 }
 
 type V3Transaction {
-  amount0: String!
-  amount1: String!
-  archiveToken0UsdPrice: String!
-  archiveToken1UsdPrice: String!
-  blockNumber: String!
-  chainId: String!
-  id: String!
+  amount0: String
+  amount1: String
+  archiveToken0UsdPrice: String
+  archiveToken1UsdPrice: String
+  blockNumber: String
+  chainId: String
+  id: String
   pool: V3Pool
-  poolAddress: String!
-  txHash: String!
+  poolAddress: String
+  txHash: String
 }
 
 input V3TransactionWhere {
   blockNumber: Float
   chainId: Float
   id: Float
+  poolAddress: String
   txHash: String
 }

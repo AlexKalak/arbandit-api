@@ -69,14 +69,6 @@ export class V3Pool {
   token1: Promise<Token>;
 
   @Field(() => String)
-  @Column('bigint', { name: 'amount0', nullable: true })
-  amount0: string | null;
-
-  @Field(() => String)
-  @Column('bigint', { name: 'amount1', nullable: true })
-  amount1: string | null;
-
-  @Field(() => String)
   @Column('numeric', { name: 'sqrt_price_x96', nullable: true })
   sqrtPriceX96: string | null;
 
