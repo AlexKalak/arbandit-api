@@ -5,11 +5,12 @@ export type RedisV3TransactionsStreamTransaction = {
   pool_address: string;
   chain_id: number;
   tx_hash: string;
+  tx_timestamp: number;
   block_number: number;
-  amount0: string;
-  amount1: string;
-  archive_token0_usd_price: string;
-  archive_token1_usd_price: string;
+  amount0: number;
+  amount1: number;
+  archive_token0_usd_price: number;
+  archive_token1_usd_price: number;
 };
 
 export const RedisV3TransactionsStreamTransactionToModel = (
@@ -19,6 +20,8 @@ export const RedisV3TransactionsStreamTransactionToModel = (
     id: tx.id,
 
     txHash: tx.tx_hash,
+
+    txTimestamp: tx.tx_timestamp,
 
     blockNumber: tx.block_number,
 

@@ -5,16 +5,14 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
-import { PubSub } from 'graphql-subscriptions';
-import { PUB_SUB } from 'src/gql/pubsub.provider';
 import {
   RedisV3TransactionsStreamTransaction,
   RedisV3TransactionsStreamTransactionToModel,
-} from 'src/database/entities/redis-entiteis';
-import { getV3TransactionTrigger } from 'src/common/graphql/graphql.utils';
+} from 'src/database/entities/redis-entities';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import Redis from 'ioredis';
 import { REDIS_CLIENT } from 'src/redis/redis.providers';
+import { TRANSACTION_EVENTS } from 'src/common/events/transaction.events';
 
 type XReadGroupResponse = [string, [string, string[]][]][] | null;
 
@@ -25,8 +23,6 @@ export class V3TransactionsListenerService
   constructor(
     @Inject(REDIS_CLIENT)
     private redisProvider: Redis,
-    @Inject(PUB_SUB)
-    private pubSub: PubSub,
     private eventEmitter: EventEmitter2,
   ) {}
 
@@ -90,15 +86,12 @@ export class V3TransactionsListenerService
                 RedisV3TransactionsStreamTransactionToModel(rawTransaction);
 
               console.log('new transaction: ', transaction);
-              await this.pubSub.publish(
-                getV3TransactionTrigger(
-                  transaction.poolAddress,
-                  transaction.chainId,
-                ),
-                {
-                  transactionAdded: transaction,
-                },
+
+              this.eventEmitter.emit(
+                TRANSACTION_EVENTS.TransactionAdded,
+                transaction,
               );
+
               await this.redisProvider.xack(stream, group, id);
             } catch {
               continue;

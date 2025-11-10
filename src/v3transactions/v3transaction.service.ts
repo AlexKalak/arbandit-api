@@ -3,6 +3,13 @@ import { Repository } from 'typeorm';
 import { V3Transaction, V3TransactionWhere } from './v3transaction.model';
 import { GqlWhereParsingService } from 'src/database/gqlWhereParsing.service';
 
+type V3TransactionServiceFindProps = {
+  first: number;
+  skip: number;
+  fromHead: boolean;
+  where?: V3TransactionWhere;
+};
+
 @Injectable()
 export class V3TransactionService {
   constructor(
@@ -11,12 +18,12 @@ export class V3TransactionService {
     private gqlWhereParsingService: GqlWhereParsingService,
   ) {}
 
-  async findAll(
-    first: number,
-    skip: number,
-    fromHead: boolean,
-    where?: V3TransactionWhere,
-  ): Promise<V3Transaction[]> {
+  async find({
+    first,
+    skip,
+    fromHead,
+    where,
+  }: V3TransactionServiceFindProps): Promise<V3Transaction[]> {
     if (!where) {
       return this.v3TransactionRepository.find({
         skip: skip,

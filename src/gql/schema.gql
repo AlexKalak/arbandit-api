@@ -2,7 +2,18 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Candle {
+  amountTransactions: Int!
+  close: String!
+  high: String!
+  low: String!
+  open: String!
+  timestamp: Int!
+  uuid: String!
+}
+
 type Query {
+  candles(chainId: Int!, chartForToken: Int!, poolAddress: String!, timeSpacing: Int!): [Candle!]!
   tokens(first: Int, skip: Int, where: TokenWhere): [Token!]!
   v3pools(first: Int, skip: Int, where: V3PoolWhere): [V3Pool!]!
   v3transactions(first: Int, fromHead: Boolean, skip: Int, where: V3TransactionWhere): [V3Transaction!]!
@@ -79,6 +90,7 @@ type V3Transaction {
   pool: V3Pool
   poolAddress: String
   txHash: String
+  txTimestamp: Int
 }
 
 input V3TransactionWhere {

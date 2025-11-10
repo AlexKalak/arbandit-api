@@ -1,4 +1,4 @@
-import { Field, InputType, ObjectType } from '@nestjs/graphql';
+import { Field, InputType, Int, ObjectType } from '@nestjs/graphql';
 import { V3Pool } from 'src/v3pools/v3pool.model';
 // import { V3Pool } from 'src/v3pools/v3pool.model';
 import {
@@ -41,25 +41,29 @@ export class V3Transaction {
   @Column('character varying', { name: 'tx_hash' })
   txHash: string;
 
+  @Field(() => Int, { nullable: true })
+  @Column('integer', { name: 'tx_timestamp' })
+  txTimestamp: number;
+
   @Field(() => String, { nullable: true })
   @Column('integer', { name: 'block_number' })
   blockNumber: number;
 
   @Field(() => String, { nullable: true })
   @Column('numeric', { name: 'amount0' })
-  amount0: string;
+  amount0: number;
 
   @Field(() => String, { nullable: true })
   @Column('numeric', { name: 'amount1' })
-  amount1: string;
+  amount1: number;
 
   @Field(() => String, { nullable: true })
   @Column('numeric', { name: 'archive_token0_usd_price' })
-  archiveToken0UsdPrice: string;
+  archiveToken0UsdPrice: number;
 
   @Field(() => String, { nullable: true })
   @Column('numeric', { name: 'archive_token1_usd_price' })
-  archiveToken1UsdPrice: string;
+  archiveToken1UsdPrice: number;
 
   @Field(() => String, { nullable: true })
   @Column('integer', { name: 'chain_id' })

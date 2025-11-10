@@ -48,7 +48,15 @@ export class V3PoolService {
     return pools;
   }
 
-  async findByAddress(address: string): Promise<V3Pool | null> {
-    return this.v3PoolRepository.findOneBy({ address: address });
+  async findByAddress(
+    address: string,
+    chainID: number,
+  ): Promise<V3Pool | null> {
+    return this.v3PoolRepository.findOne({
+      where: {
+        address: address,
+        chainId: chainID,
+      },
+    });
   }
 }

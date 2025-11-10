@@ -56,4 +56,11 @@ export class Token {
   @Field(() => String)
   @Column('numeric', { name: 'usd_price' })
   usdPrice: string;
+
+  getRealAmountOfToken(amount: number): number {
+    if (!this.decimals) {
+      return 0;
+    }
+    return amount / Math.pow(10, this.decimals);
+  }
 }

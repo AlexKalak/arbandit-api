@@ -6,10 +6,23 @@ import { V3PoolModule } from 'src/v3pools/v3pool.module';
 import { PubSubModule } from './pubsub.provider';
 import { GQLTokenResolver } from './gql.token.resolvers';
 import { TokenModule } from 'src/tokens/token.module';
+import { GQLCandlesResolver } from 'src/candles/candles.resolver';
+import { CandlesModule } from 'src/candles/candles.module';
 
 @Module({
-  imports: [V3TransactionModule, V3PoolModule, PubSubModule, TokenModule],
+  imports: [
+    V3TransactionModule,
+    V3PoolModule,
+    PubSubModule,
+    TokenModule,
+    CandlesModule,
+  ],
   exports: [GQLV3TransactionResolver],
-  providers: [GQLV3TransactionResolver, GQLV3PoolResolver, GQLTokenResolver],
+  providers: [
+    GQLV3TransactionResolver,
+    GQLV3PoolResolver,
+    GQLTokenResolver,
+    GQLCandlesResolver,
+  ],
 })
 export class GQLModule {}

@@ -9,6 +9,8 @@ import { V3TransactionService } from 'src/v3transactions/v3transaction.service';
 import { PubSub } from 'graphql-subscriptions';
 import { PUB_SUB } from './pubsub.provider';
 import { getV3TransactionTrigger } from 'src/common/graphql/graphql.utils';
+import { OnEvent } from '@nestjs/event-emitter';
+import { TRANSACTION_EVENTS } from 'src/common/events/transaction.events';
 
 @Resolver()
 export class GQLV3TransactionResolver {
@@ -36,9 +38,23 @@ export class GQLV3TransactionResolver {
         },
       });
     }
-    return this.v3TransactionService.findAll(first, skip, fromHead, where);
+    return this.v3TransactionService.find({
+      first,
+      skip,
+      fromHead,
+      where,
+    });
   }
 
+  @OnEvent(TRANSACTION_EVENTS.TransactionAdded)
+  async hanleTransactionEvent(transaction: V3Transaction) {
+    await this.pubSub.publish(
+      getV3TransactionTrigger(transaction.poolAddress, transaction.chainId),
+      {
+        transactionAdded: transaction,
+      },
+    );
+  }
   @Subscription(() => V3Transaction, {})
   transactionAdded(
     @Args('poolAddress', { type: () => String })
