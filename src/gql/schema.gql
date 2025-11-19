@@ -2,8 +2,20 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Arbitrage {
+  path: [ArbitragePathUnit!]!
+}
+
+type ArbitragePathUnit {
+  amountIn: String!
+  amountOut: String!
+  poolAddress: String!
+  tokenInAddress: String!
+  tokenOutAddress: String!
+}
+
 type Candle {
-  amountTransactions: Int!
+  amountSwaps: Int!
   close: String!
   high: String!
   low: String!
@@ -14,13 +26,15 @@ type Candle {
 
 type Query {
   candles(chainId: Int!, chartForToken: Int!, poolAddress: String!, timeSpacing: Int!): [Candle!]!
+  on_chain_arbitrages(chainId: Int!): [Arbitrage!]!
+  token_impacts: [TokenImpact!]!
   tokens(first: Int, skip: Int, where: TokenWhere): [Token!]!
   v3pools(first: Int, skip: Int, where: V3PoolWhere): [V3Pool!]!
-  v3transactions(first: Int, fromHead: Boolean, skip: Int, where: V3TransactionWhere): [V3Transaction!]!
+  v3swaps(first: Int, fromHead: Boolean, skip: Int, where: V3SwapWhere): [V3Swap!]!
 }
 
 type Subscription {
-  transactionAdded(chainId: Int!, poolAddress: String!): V3Transaction!
+  swapAdded(chainId: Int!, poolAddress: String!): V3Swap!
 }
 
 type Token {
@@ -30,6 +44,16 @@ type Token {
   logoUri: String!
   name: String!
   symbol: String!
+  tokenImpacts: [TokenImpact!]
+  usdPrice: String!
+}
+
+type TokenImpact {
+  chainId: Int!
+  exchangeIdentifier: String!
+  impact: String!
+  token: Token
+  tokenAddress: String!
   usdPrice: String!
 }
 
@@ -51,13 +75,13 @@ type V3Pool {
   feeTier: Int!
   isDusty: Boolean!
   liquidity: String!
-  nearTicks: String!
   nonZfo_10usdRate: String!
   sqrtPriceX96: String!
   tick: Int!
   tickLower: Int!
   tickSpacing: Int!
   tickUpper: Int!
+  ticks: String!
   token0: Token!
   token0Address: String!
   token1: Token!
@@ -79,7 +103,7 @@ input V3PoolWhere {
   token1Symbol: String
 }
 
-type V3Transaction {
+type V3Swap {
   amount0: String
   amount1: String
   archiveToken0UsdPrice: String
@@ -93,7 +117,7 @@ type V3Transaction {
   txTimestamp: Int
 }
 
-input V3TransactionWhere {
+input V3SwapWhere {
   blockNumber: Float
   chainId: Float
   id: Float

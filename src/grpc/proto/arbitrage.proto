@@ -1,0 +1,34 @@
+
+syntax = "proto3";
+
+option go_package = "github.com/alexkalak/arbandit/services/arbitrageservice/controllers/grpc/proto";
+
+package arbitrage;
+
+service arbitrage {
+  rpc GetArbsOnChain(ArbsOnChainRequest) returns (ArbsOnChainResponse);
+}
+
+message ArbsOnChainRequest {
+  int64 chain_id = 1;
+}
+
+
+message OnChainArbitragePathUnit {
+  string token_in_address = 1;
+  string token_out_address = 2;
+  string pool_address = 3;
+  string amount_in = 4;
+  string amount_out = 5;
+}
+
+message OnChainArbitrage {
+  repeated OnChainArbitragePathUnit path = 1;
+}
+
+message ArbsOnChainResponse {
+  int64 chain_id = 1;
+  repeated OnChainArbitrage arbitrages = 2;
+}
+
+

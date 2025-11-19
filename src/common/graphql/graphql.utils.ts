@@ -1,6 +1,6 @@
-export const getV3TransactionTrigger = (
+export const getV3SwapTrigger = (
   poolAddress: string,
   chainId: number,
 ): string => {
-  return `transactionAdded_${chainId}_${poolAddress}`;
+  return `swapAdded_${chainId}_${poolAddress}`;
 };

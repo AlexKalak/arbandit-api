@@ -121,8 +121,8 @@ export class V3Pool {
   tickUpper: number | null;
 
   @Field(() => String)
-  @Column('text', { name: 'near_ticks', nullable: true, default: () => "'[]'" })
-  nearTicks: string | null;
+  @Column('text', { name: 'ticks', nullable: true, default: () => "'[]'" })
+  ticks: string | null;
 
   @Field(() => String)
   @Column('numeric', {

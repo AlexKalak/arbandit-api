@@ -1,13 +1,13 @@
 import { Controller, Get } from '@nestjs/common';
 
 import { AppService } from './app.service';
-import { V3TransactionService } from './v3transactions/v3transaction.service';
+import { V3SwapService } from './v3swaps/v3swap.service';
 
 @Controller()
 export class AppController {
   constructor(
     private readonly appService: AppService,
-    private readonly v3TransactionService: V3TransactionService,
+    private readonly v3SwapService: V3SwapService,
   ) {}
 
   @Get()

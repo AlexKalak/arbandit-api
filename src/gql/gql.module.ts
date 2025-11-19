@@ -1,28 +1,32 @@
 import { Module } from '@nestjs/common';
-import { V3TransactionModule } from 'src/v3transactions/v3transaction.module';
-import { GQLV3TransactionResolver } from './gql.v3transaction.resolvers';
+import { V3SwapModule } from 'src/v3swaps/v3swap.module';
+import { GQLV3SwapResolver } from './gql.v3swap.resolvers';
 import { GQLV3PoolResolver } from './gql.v3pool.resolvers';
 import { V3PoolModule } from 'src/v3pools/v3pool.module';
 import { PubSubModule } from './pubsub.provider';
-import { GQLTokenResolver } from './gql.token.resolvers';
+import { GQLTokenResolver } from './token.gql.resolvers';
 import { TokenModule } from 'src/tokens/token.module';
 import { GQLCandlesResolver } from 'src/candles/candles.resolver';
 import { CandlesModule } from 'src/candles/candles.module';
+import { GQLArbitrageResolver } from './gql.arbitrage.resolver';
+import { ArbitrageModule } from 'src/arbitrage/arbitrage.module';
 
 @Module({
   imports: [
-    V3TransactionModule,
+    V3SwapModule,
     V3PoolModule,
     PubSubModule,
     TokenModule,
     CandlesModule,
+    ArbitrageModule,
   ],
-  exports: [GQLV3TransactionResolver],
+  exports: [GQLV3SwapResolver],
   providers: [
-    GQLV3TransactionResolver,
+    GQLV3SwapResolver,
     GQLV3PoolResolver,
     GQLTokenResolver,
     GQLCandlesResolver,
+    GQLArbitrageResolver,
   ],
 })
 export class GQLModule {}

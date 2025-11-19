@@ -1,6 +1,6 @@
-import { V3Transaction } from 'src/v3transactions/v3transaction.model';
+import { V3Swap } from 'src/v3swaps/v3swap.model';
 
-export type RedisV3TransactionsStreamTransaction = {
+export type RedisV3SwapsStreamSwap = {
   id: number;
   pool_address: string;
   chain_id: number;
@@ -13,9 +13,9 @@ export type RedisV3TransactionsStreamTransaction = {
   archive_token1_usd_price: number;
 };
 
-export const RedisV3TransactionsStreamTransactionToModel = (
-  tx: RedisV3TransactionsStreamTransaction,
-): V3Transaction => {
+export const RedisV3SwapsStreamSwapToModel = (
+  tx: RedisV3SwapsStreamSwap,
+): V3Swap => {
   return {
     id: tx.id,
 

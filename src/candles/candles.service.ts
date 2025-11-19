@@ -3,7 +3,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import Redis from 'ioredis';
 import { REDIS_CLIENT } from 'src/redis/redis.providers';
 import { Candle } from './candle.model';
-import { V3TransactionService } from 'src/v3transactions/v3transaction.service';
+import { V3SwapService } from 'src/v3swaps/v3swap.service';
 import { V3PoolService } from 'src/v3pools/v3pool.service';
 import { randomUUID } from 'crypto';
 
@@ -32,7 +32,7 @@ type CandlesServiceFindProps = {
 @Injectable()
 export class CandlesService {
   constructor(
-    private transactionService: V3TransactionService,
+    private swapService: V3SwapService,
     private v3poolService: V3PoolService,
     private eventEmitter: EventEmitter2,
 
@@ -60,7 +60,7 @@ export class CandlesService {
       return [];
     }
 
-    const transactions = await this.transactionService.find({
+    const swaps = await this.swapService.find({
       first: 1000,
       skip: chartForToken,
       fromHead: true,
@@ -69,27 +69,29 @@ export class CandlesService {
         chainId: chainID,
       },
     });
-    transactions.reverse();
+    swaps.reverse();
 
     const candles: Candle[] = [];
     let lastTimeStamp = 0;
     let lastPrice = 0;
 
-    //FIX: add gaps if nextCandleTimestamp > lastTimeStamp more than 2 times of tick spacing
-    for (const transaction of transactions) {
-      const realAmount0 = token0.getRealAmountOfToken(transaction.amount0);
-      const realAmount1 = token1.getRealAmountOfToken(transaction.amount1);
+    for (const swap of swaps) {
+      const realAmount0 = token0.getRealAmountOfToken(swap.amount0);
+      const realAmount1 = token1.getRealAmountOfToken(swap.amount1);
 
       const price = getPrice(
         chartForToken,
-        transaction.archiveToken0UsdPrice,
-        transaction.archiveToken1UsdPrice,
+        swap.archiveToken0UsdPrice,
+        swap.archiveToken1UsdPrice,
         realAmount0,
         realAmount1,
       );
+      if (price === 0 || price === -Infinity || price === +Infinity) {
+        continue;
+      }
 
       const flooredTxTimestamp =
-        transaction.txTimestamp - (transaction.txTimestamp % timeSpacing);
+        swap.txTimestamp - (swap.txTimestamp % timeSpacing);
 
       //New canlde
       if (flooredTxTimestamp - lastTimeStamp >= timeSpacing) {
@@ -105,7 +107,7 @@ export class CandlesService {
               high: lastPrice,
               low: lastPrice,
               timestamp: lastTimeStamp + (i + 1) * timeSpacing,
-              amountTransactions: 0,
+              amountSwaps: 0,
             });
           }
         }
@@ -118,14 +120,14 @@ export class CandlesService {
           high: price,
           low: price,
           timestamp: flooredTxTimestamp,
-          amountTransactions: 1,
+          amountSwaps: 1,
         });
         //Update existing candle
       } else {
         const candle = candles[candles.length - 1];
 
         candle.close = price;
-        candle.amountTransactions++;
+        candle.amountSwaps++;
 
         if (price < candle.low) {
           candle.low = price;

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
-import { V3TransactionModule } from './v3transactions/v3transaction.module';
+import { V3SwapModule } from './v3swaps/v3swap.module';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
@@ -15,7 +15,7 @@ import { RedisModule } from './redis/redis.module';
   imports: [
     DatabaseModule,
     RedisModule,
-    V3TransactionModule,
+    V3SwapModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/gql/schema.gql'),

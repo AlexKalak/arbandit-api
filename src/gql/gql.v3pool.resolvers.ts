@@ -12,11 +12,11 @@ export class GQLV3PoolResolver {
     @Args('where', { type: () => V3PoolWhere, nullable: true })
     where?: V3PoolWhere,
     @Args('first', { type: () => Int, nullable: true })
-    first: number = 100,
+    first: number = 1000,
     @Args('skip', { type: () => Int, nullable: true })
     skip: number = 0,
   ): Promise<V3Pool[]> {
-    if (first > 100) {
+    if (first > 1000) {
       throw new GraphQLError('Too many entities requested', {
         extensions: {
           code: 'TOO_MANY_ENTITIES',

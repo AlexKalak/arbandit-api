@@ -1,35 +1,32 @@
 import { Inject } from '@nestjs/common';
 import { Args, Int, Query, Resolver, Subscription } from '@nestjs/graphql';
 import { GraphQLError } from 'graphql';
-import {
-  V3Transaction,
-  V3TransactionWhere,
-} from 'src/v3transactions/v3transaction.model';
-import { V3TransactionService } from 'src/v3transactions/v3transaction.service';
+import { V3Swap, V3SwapWhere } from 'src/v3swaps/v3swap.model';
+import { V3SwapService } from 'src/v3swaps/v3swap.service';
 import { PubSub } from 'graphql-subscriptions';
 import { PUB_SUB } from './pubsub.provider';
-import { getV3TransactionTrigger } from 'src/common/graphql/graphql.utils';
+import { getV3SwapTrigger } from 'src/common/graphql/graphql.utils';
 import { OnEvent } from '@nestjs/event-emitter';
-import { TRANSACTION_EVENTS } from 'src/common/events/transaction.events';
+import { SWAP_EVENTS } from 'src/common/events/swap.events';
 
 @Resolver()
-export class GQLV3TransactionResolver {
+export class GQLV3SwapResolver {
   constructor(
-    private readonly v3TransactionService: V3TransactionService,
+    private readonly v3SwapService: V3SwapService,
     @Inject(PUB_SUB) private pubSub: PubSub,
-  ) {}
+  ) { }
 
-  @Query(() => [V3Transaction])
-  async v3transactions(
+  @Query(() => [V3Swap])
+  async v3swaps(
     @Args('fromHead', { type: () => Boolean, nullable: true })
     fromHead: boolean = true,
-    @Args('where', { type: () => V3TransactionWhere, nullable: true })
-    where?: V3TransactionWhere,
+    @Args('where', { type: () => V3SwapWhere, nullable: true })
+    where?: V3SwapWhere,
     @Args('first', { type: () => Int, nullable: true })
     first: number = 100,
     @Args('skip', { type: () => Int, nullable: true })
     skip: number = 0,
-  ): Promise<V3Transaction[]> {
+  ): Promise<V3Swap[]> {
     if (first > 100) {
       throw new GraphQLError('Too many entities requested', {
         extensions: {
@@ -38,7 +35,7 @@ export class GQLV3TransactionResolver {
         },
       });
     }
-    return this.v3TransactionService.find({
+    return this.v3SwapService.find({
       first,
       skip,
       fromHead,
@@ -46,24 +43,24 @@ export class GQLV3TransactionResolver {
     });
   }
 
-  @OnEvent(TRANSACTION_EVENTS.TransactionAdded)
-  async hanleTransactionEvent(transaction: V3Transaction) {
+  @OnEvent(SWAP_EVENTS.SwapAdded)
+  async hanleSwapEvent(swap: V3Swap) {
     await this.pubSub.publish(
-      getV3TransactionTrigger(transaction.poolAddress, transaction.chainId),
+      getV3SwapTrigger(swap.poolAddress, swap.chainId),
       {
-        transactionAdded: transaction,
+        swapAdded: swap,
       },
     );
   }
-  @Subscription(() => V3Transaction, {})
-  transactionAdded(
+  @Subscription(() => V3Swap, {})
+  swapAdded(
     @Args('poolAddress', { type: () => String })
     poolAddress: string,
     @Args('chainId', { type: () => Int })
     chainId: number,
   ) {
     return this.pubSub.asyncIterableIterator(
-      getV3TransactionTrigger(poolAddress, chainId),
+      getV3SwapTrigger(poolAddress, chainId),
     );
   }
 }

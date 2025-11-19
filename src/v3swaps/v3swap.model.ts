@@ -12,7 +12,7 @@ import {
 } from 'typeorm';
 
 @InputType()
-export class V3TransactionWhere {
+export class V3SwapWhere {
   @Field({ nullable: true })
   id?: number;
 
@@ -30,9 +30,9 @@ export class V3TransactionWhere {
 }
 
 @ObjectType()
-@Index('v3_pool_transactions_pkey', ['id'], { unique: true })
-@Entity('v3_pool_transactions', { schema: 'public' })
-export class V3Transaction {
+@Index('v3_pool_swaps_pkey', ['id'], { unique: true })
+@Entity('v3_pool_swaps', { schema: 'public' })
+export class V3Swap {
   @Field(() => String, { nullable: true })
   @PrimaryGeneratedColumn({ type: 'integer', name: 'id' })
   id: number;

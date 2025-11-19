@@ -1,6 +1,5 @@
 import { Args, Int, Query, Resolver } from '@nestjs/graphql';
-import { GraphQLError } from 'graphql';
-import { Token, TokenWhere } from 'src/tokens/token.model';
+import { Token, TokenImpact, TokenWhere } from 'src/tokens/token.model';
 import { TokenService } from 'src/tokens/token.service';
 
 @Resolver()
@@ -16,15 +15,20 @@ export class GQLTokenResolver {
     @Args('skip', { type: () => Int, nullable: true })
     skip: number = 0,
   ): Promise<Token[]> {
-    if (first > 100) {
-      throw new GraphQLError('Too many entities requested', {
-        extensions: {
-          code: 'TOO_MANY_ENTITIES',
-          timestamp: new Date().toISOString(),
-        },
-      });
-    }
+    // if (first > 100) {
+    //   throw new GraphQLError('Too many entities requested', {
+    //     extensions: {
+    //       code: 'TOO_MANY_ENTITIES',
+    //       timestamp: new Date().toISOString(),
+    //     },
+    //   });
+    // }
 
-    return this.tokenService.findAll(first, skip, where);
+    return this.tokenService.findAllWithValidImpacts(first, skip, where);
+  }
+
+  @Query(() => [TokenImpact])
+  async token_impacts(): Promise<TokenImpact[]> {
+    return this.tokenService.findImpacts();
   }
 }

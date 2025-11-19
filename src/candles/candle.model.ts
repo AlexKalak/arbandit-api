@@ -18,7 +18,7 @@ export class Candle {
   high: number;
 
   @Field(() => Int)
-  amountTransactions: number;
+  amountSwaps: number;
 
   @Field(() => Int)
   timestamp: number;

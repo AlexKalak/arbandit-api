@@ -1,7 +1,7 @@
-import { Token } from 'src/tokens/token.model';
+import { Token, TokenImpact } from 'src/tokens/token.model';
 import { V2Pair } from 'src/v2pairs/v2pair.model';
 import { V3Pool } from 'src/v3pools/v3pool.model';
-import { V3Transaction } from 'src/v3transactions/v3transaction.model';
+import { V3Swap } from 'src/v3swaps/v3swap.model';
 import { DataSource } from 'typeorm';
 
 export const databaseProviders = [
@@ -15,7 +15,7 @@ export const databaseProviders = [
         username: 'postgres',
         password: '12341234',
         database: 'market_analyze',
-        entities: [Token, V2Pair, V3Pool, V3Transaction],
+        entities: [Token, TokenImpact, V2Pair, V3Pool, V3Swap],
         synchronize: false, // ❌ very important, don’t let TypeORM change schema
       });
 

@@ -6,27 +6,25 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import {
-  RedisV3TransactionsStreamTransaction,
-  RedisV3TransactionsStreamTransactionToModel,
+  RedisV3SwapsStreamSwap,
+  RedisV3SwapsStreamSwapToModel,
 } from 'src/database/entities/redis-entities';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import Redis from 'ioredis';
 import { REDIS_CLIENT } from 'src/redis/redis.providers';
-import { TRANSACTION_EVENTS } from 'src/common/events/transaction.events';
+import { SWAP_EVENTS } from 'src/common/events/swap.events';
 
 type XReadGroupResponse = [string, [string, string[]][]][] | null;
 
 @Injectable()
-export class V3TransactionsListenerService
-  implements OnModuleInit, OnModuleDestroy
-{
+export class V3SwapsListenerService implements OnModuleInit, OnModuleDestroy {
   constructor(
     @Inject(REDIS_CLIENT)
     private redisProvider: Redis,
     private eventEmitter: EventEmitter2,
   ) {}
 
-  private readonly logger = new Logger(V3TransactionsListenerService.name);
+  private readonly logger = new Logger(V3SwapsListenerService.name);
   private listening = true;
 
   onModuleInit() {
@@ -38,7 +36,7 @@ export class V3TransactionsListenerService
   }
 
   private async listenToStream() {
-    const stream = '1_v3transactions';
+    const stream = '1_v3swaps';
     const group = 'nest_group';
     const consumer = `consumer-${process.pid}`;
 
@@ -75,22 +73,17 @@ export class V3TransactionsListenerService
             }
             console.log(`${streamName} -> ${id}`, fields);
             try {
-              const rawTransaction: RedisV3TransactionsStreamTransaction =
-                JSON.parse(
-                  fields.transaction,
-                ) as RedisV3TransactionsStreamTransaction;
+              const rawSwap: RedisV3SwapsStreamSwap = JSON.parse(
+                fields.swap,
+              ) as RedisV3SwapsStreamSwap;
 
-              console.log('raw transaction: ', rawTransaction);
+              console.log('raw swap: ', rawSwap);
 
-              const transaction =
-                RedisV3TransactionsStreamTransactionToModel(rawTransaction);
+              const swap = RedisV3SwapsStreamSwapToModel(rawSwap);
 
-              console.log('new transaction: ', transaction);
+              console.log('new swap: ', swap);
 
-              this.eventEmitter.emit(
-                TRANSACTION_EVENTS.TransactionAdded,
-                transaction,
-              );
+              this.eventEmitter.emit(SWAP_EVENTS.SwapAdded, swap);
 
               await this.redisProvider.xack(stream, group, id);
             } catch {
