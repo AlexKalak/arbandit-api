@@ -1,3 +1,4 @@
 export const SWAP_EVENTS = {
-  SwapAdded: 'swapAdded',
+  V3SwapAdded: 'v3swapAdded',
+  V2SwapAdded: 'v2swapAdded',
 };

@@ -6,8 +6,8 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import {
-  RedisV3SwapsStreamSwap,
-  RedisV3SwapsStreamSwapToModel,
+  RedisV2SwapsStreamSwap,
+  RedisV2SwapsStreamSwapToModel,
 } from 'src/database/entities/redis-entities';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import Redis from 'ioredis';
@@ -17,37 +17,37 @@ import { SWAP_EVENTS } from 'src/common/events/swap.events';
 type XReadGroupResponse = [string, [string, string[]][]][] | null;
 
 @Injectable()
-export class V3SwapsListenerService implements OnModuleInit, OnModuleDestroy {
+export class V2SwapsListenerService implements OnModuleInit, OnModuleDestroy {
   constructor(
     @Inject(REDIS_CLIENT)
     private redisProvider: Redis,
     private eventEmitter: EventEmitter2,
   ) {}
 
-  private readonly logger = new Logger(V3SwapsListenerService.name);
+  private readonly logger = new Logger(V2SwapsListenerService.name);
 
   private group = 'nest_group';
   private consumer = `consumer-${process.pid}`;
 
   private listeningSteams = {
-    v3streams: {
-      '1_v3swaps': true,
+    v2streams: {
+      '1_v2swaps': true,
     },
   };
 
   onModuleInit() {
-    for (const stream of Object.keys(this.listeningSteams.v3streams)) {
-      this.listenToV3SwapsStream(stream);
+    for (const stream of Object.keys(this.listeningSteams.v2streams)) {
+      this.listenToV2SwapsStream(stream);
     }
   }
 
   onModuleDestroy() {
-    for (const stream of Object.keys(this.listeningSteams.v3streams)) {
-      this.listeningSteams.v3streams[stream] = false;
+    for (const stream of Object.keys(this.listeningSteams.v2streams)) {
+      this.listeningSteams.v2streams[stream] = false;
     }
   }
 
-  private async listenToV3SwapsStream(stream: string) {
+  private async listenToV2SwapsStream(stream: string) {
     try {
       await this.redisProvider.xgroup('CREATE', stream, this.group, '0');
     } catch (e) {
@@ -57,21 +57,22 @@ export class V3SwapsListenerService implements OnModuleInit, OnModuleDestroy {
 
     this.logger.log('Listening for new Redis stream messages...');
 
-    while (this.listeningSteams.v3streams[stream]) {
+    while (this.listeningSteams.v2streams[stream]) {
       const response = (await this.redisProvider.xreadgroup(
         'GROUP',
         this.group,
         this.consumer,
         'COUNT',
-        10,
+        100,
         'BLOCK',
-        5000,
+        300,
         'STREAMS',
         stream,
         '>',
       )) as XReadGroupResponse;
 
       if (response) {
+        console.log('GOt response: ', response);
         for (const [streamName, messages] of response) {
           for (const [id, message] of messages) {
             const fields: Record<string, string> = {};
@@ -80,19 +81,21 @@ export class V3SwapsListenerService implements OnModuleInit, OnModuleDestroy {
             }
             console.log(`${streamName} -> ${id}`, fields);
             try {
-              const rawSwap: RedisV3SwapsStreamSwap = JSON.parse(
+              const rawSwap: RedisV2SwapsStreamSwap = JSON.parse(
                 fields.swap,
-              ) as RedisV3SwapsStreamSwap;
+              ) as RedisV2SwapsStreamSwap;
 
-              console.log('raw swap: ', rawSwap);
+              // console.log('raw swap: ', rawSwap);
 
-              const swap = RedisV3SwapsStreamSwapToModel(rawSwap);
+              const swap = RedisV2SwapsStreamSwapToModel(rawSwap);
 
-              console.log('new swap: ', swap);
+              console.log('new swap: ', swap.blockNumber);
 
-              this.eventEmitter.emit(SWAP_EVENTS.V3SwapAdded, swap);
+              this.eventEmitter.emit(SWAP_EVENTS.V2SwapAdded, swap);
 
-              await this.redisProvider.xack(stream, this.group, id);
+              console.log('Start awaiting');
+              this.redisProvider.xack(stream, this.group, id);
+              console.log('END awaiting');
             } catch {
               continue;
             }

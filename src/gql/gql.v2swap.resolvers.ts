@@ -1,32 +1,32 @@
 import { Inject } from '@nestjs/common';
 import { Args, Int, Query, Resolver, Subscription } from '@nestjs/graphql';
 import { GraphQLError } from 'graphql';
-import { V3Swap, V3SwapWhere } from 'src/v3swaps/v3swap.model';
-import { V3SwapService } from 'src/v3swaps/v3swap.service';
 import { PubSub } from 'graphql-subscriptions';
 import { PUB_SUB } from './pubsub.provider';
-import { getV3SwapTrigger } from 'src/common/graphql/graphql.utils';
+import { getV2SwapTrigger } from 'src/common/graphql/graphql.utils';
 import { OnEvent } from '@nestjs/event-emitter';
 import { SWAP_EVENTS } from 'src/common/events/swap.events';
+import { V2SwapService } from 'src/v2swaps/v2swap.service';
+import { V2Swap, V2SwapWhere } from 'src/v2swaps/v2swap.model';
 
 @Resolver()
-export class GQLV3SwapResolver {
+export class GQLV2SwapResolver {
   constructor(
-    private readonly v3SwapService: V3SwapService,
+    private readonly v2SwapService: V2SwapService,
     @Inject(PUB_SUB) private pubSub: PubSub,
   ) {}
 
-  @Query(() => [V3Swap])
-  async v3swaps(
+  @Query(() => [V2Swap])
+  async v2swaps(
     @Args('fromHead', { type: () => Boolean, nullable: true })
     fromHead: boolean = true,
-    @Args('where', { type: () => V3SwapWhere, nullable: true })
-    where?: V3SwapWhere,
+    @Args('where', { type: () => V2SwapWhere, nullable: true })
+    where?: V2SwapWhere,
     @Args('first', { type: () => Int, nullable: true })
     first: number = 100,
     @Args('skip', { type: () => Int, nullable: true })
     skip: number = 0,
-  ): Promise<V3Swap[]> {
+  ): Promise<V2Swap[]> {
     if (first > 100) {
       throw new GraphQLError('Too many entities requested', {
         extensions: {
@@ -35,7 +35,8 @@ export class GQLV3SwapResolver {
         },
       });
     }
-    return this.v3SwapService.find({
+
+    return this.v2SwapService.find({
       first,
       skip,
       fromHead,
@@ -43,24 +44,24 @@ export class GQLV3SwapResolver {
     });
   }
 
-  @OnEvent(SWAP_EVENTS.V3SwapAdded)
-  async hanleSwapEvent(swap: V3Swap) {
+  @OnEvent(SWAP_EVENTS.V2SwapAdded)
+  async hanleSwapEvent(swap: V2Swap) {
     await this.pubSub.publish(
-      getV3SwapTrigger(swap.poolAddress, swap.chainId),
+      getV2SwapTrigger(swap.pairAddress, swap.chainId),
       {
-        swapAdded: swap,
+        v2SwapAdded: swap,
       },
     );
   }
-  @Subscription(() => V3Swap, {})
-  swapAdded(
-    @Args('poolAddress', { type: () => String })
-    poolAddress: string,
+  @Subscription(() => V2Swap, {})
+  v2SwapAdded(
+    @Args('pairAddress', { type: () => String })
+    pairAddress: string,
     @Args('chainId', { type: () => Int })
     chainId: number,
   ) {
     return this.pubSub.asyncIterableIterator(
-      getV3SwapTrigger(poolAddress, chainId),
+      getV2SwapTrigger(pairAddress, chainId),
     );
   }
 }

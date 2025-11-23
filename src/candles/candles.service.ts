@@ -6,6 +6,8 @@ import { Candle } from './candle.model';
 import { V3SwapService } from 'src/v3swaps/v3swap.service';
 import { V3PoolService } from 'src/v3pools/v3pool.service';
 import { randomUUID } from 'crypto';
+import { V2PairService } from 'src/v2pairs/v2pair.service';
+import { V2SwapService } from 'src/v2swaps/v2swap.service';
 
 const getPrice = (
   chartForToken: number,
@@ -22,9 +24,15 @@ const getPrice = (
   return tokenPrice;
 };
 
-type CandlesServiceFindProps = {
+type CandlesServiceFindV3Props = {
   timeSpacing: number; //in seconds
   poolAddress: string;
+  chainID: number;
+  chartForToken: number;
+};
+type CandlesServiceFindV2Props = {
+  timeSpacing: number; //in seconds
+  pairAddress: string;
   chainID: number;
   chartForToken: number;
 };
@@ -32,8 +40,10 @@ type CandlesServiceFindProps = {
 @Injectable()
 export class CandlesService {
   constructor(
-    private swapService: V3SwapService,
+    private v3SwapService: V3SwapService,
+    private v2SwapService: V2SwapService,
     private v3poolService: V3PoolService,
+    private v2pairService: V2PairService,
     private eventEmitter: EventEmitter2,
 
     @Inject(REDIS_CLIENT)
@@ -45,7 +55,7 @@ export class CandlesService {
     chainID,
     chartForToken,
     timeSpacing,
-  }: CandlesServiceFindProps): Promise<Candle[]> {
+  }: CandlesServiceFindV3Props): Promise<Candle[]> {
     const pool = await this.v3poolService.findByAddress(poolAddress, chainID);
     if (!pool) {
       return [];
@@ -60,12 +70,119 @@ export class CandlesService {
       return [];
     }
 
-    const swaps = await this.swapService.find({
-      first: 1000,
-      skip: chartForToken,
-      fromHead: true,
+    const minimalTimestamp =
+      Math.floor(new Date().getTime() / 1000) - 4000 * 60;
+
+    const swaps = await this.v3SwapService.findByMinimalTimestamp({
+      minimalTimestamp,
+      skip: 0,
       where: {
         poolAddress,
+        chainId: chainID,
+      },
+    });
+
+    swaps.reverse();
+
+    const candles: Candle[] = [];
+    let lastTimeStamp = 0;
+    let lastPrice = 0;
+
+    for (const swap of swaps) {
+      const realAmount0 = token0.getRealAmountOfToken(swap.amount0);
+      const realAmount1 = token1.getRealAmountOfToken(swap.amount1);
+
+      const price = getPrice(
+        chartForToken,
+        swap.archiveToken0UsdPrice,
+        swap.archiveToken1UsdPrice,
+        realAmount0,
+        realAmount1,
+      );
+      if (price === 0 || price === -Infinity || price === +Infinity) {
+        continue;
+      }
+
+      const flooredTxTimestamp =
+        swap.txTimestamp - (swap.txTimestamp % timeSpacing);
+
+      //New canlde
+      if (flooredTxTimestamp - lastTimeStamp >= timeSpacing) {
+        if (lastTimeStamp !== 0) {
+          const diff = flooredTxTimestamp - lastTimeStamp;
+          const amountOfEmptyCandles = Math.floor(diff / timeSpacing) - 1;
+
+          for (let i = 0; i < amountOfEmptyCandles; i++) {
+            candles.push({
+              uuid: randomUUID().toString(),
+              open: lastPrice,
+              close: lastPrice,
+              high: lastPrice,
+              low: lastPrice,
+              timestamp: lastTimeStamp + (i + 1) * timeSpacing,
+              amountSwaps: 0,
+            });
+          }
+        }
+        lastTimeStamp = flooredTxTimestamp;
+
+        candles.push({
+          uuid: randomUUID().toString(),
+          open: lastPrice !== 0 ? lastPrice : price,
+          close: price,
+          high: price,
+          low: price,
+          timestamp: flooredTxTimestamp,
+          amountSwaps: 1,
+        });
+        //Update existing candle
+      } else {
+        const candle = candles[candles.length - 1];
+
+        candle.close = price;
+        candle.amountSwaps++;
+
+        if (price < candle.low) {
+          candle.low = price;
+        }
+        if (price > candle.high) {
+          candle.high = price;
+        }
+        candle.close = price;
+      }
+      lastPrice = price;
+    }
+
+    return candles;
+  }
+
+  async findForV2Pair({
+    pairAddress,
+    chainID,
+    chartForToken,
+    timeSpacing,
+  }: CandlesServiceFindV2Props): Promise<Candle[]> {
+    const pair = await this.v2pairService.findByAddress(pairAddress, chainID);
+    if (!pair) {
+      return [];
+    }
+
+    const token0 = await pair.token0;
+    if (!token0) {
+      return [];
+    }
+    const token1 = await pair.token1;
+    if (!token1) {
+      return [];
+    }
+
+    const minimalTimestamp = new Date().getTime() / 1000 - 1000 * timeSpacing;
+
+    const swaps = await this.v2SwapService.findByMinimalTimestamp({
+      minimalTimestamp,
+      skip: chartForToken,
+      where: {
+        pairAddress,
         chainId: chainID,
       },
     });

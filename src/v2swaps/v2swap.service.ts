@@ -1,25 +1,25 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { MoreThan, Repository } from 'typeorm';
-import { V3Swap, V3SwapWhere } from './v3swap.model';
 import { GqlWhereParsingService } from 'src/database/gqlWhereParsing.service';
+import { V2Swap, V2SwapWhere } from './v2swap.model';
 
-type V3SwapServiceFindProps = {
+type V2SwapServiceFindProps = {
   first: number;
   skip: number;
   fromHead: boolean;
-  where?: V3SwapWhere;
+  where?: V2SwapWhere;
 };
-type V3SwapServiceFindByMinimalTimestampProps = {
+type V2SwapServiceFindByMinimalTimestampProps = {
   minimalTimestamp: number;
   skip: number;
-  where?: V3SwapWhere;
+  where?: V2SwapWhere;
 };
 
 @Injectable()
-export class V3SwapService {
+export class V2SwapService {
   constructor(
-    @Inject('V3_SWAP_REPOSITORY')
-    private v3SwapRepository: Repository<V3Swap>,
+    @Inject('V2_SWAP_REPOSITORY')
+    private v2SwapRepository: Repository<V2Swap>,
     private gqlWhereParsingService: GqlWhereParsingService,
   ) {}
 
@@ -28,19 +28,19 @@ export class V3SwapService {
     skip,
     fromHead,
     where,
-  }: V3SwapServiceFindProps): Promise<V3Swap[]> {
+  }: V2SwapServiceFindProps): Promise<V2Swap[]> {
     if (!where) {
-      return this.v3SwapRepository.find({
+      return this.v2SwapRepository.find({
         skip: skip,
         take: first,
       });
     }
 
-    const queryBuilder = this.v3SwapRepository
+    const queryBuilder = this.v2SwapRepository
       .createQueryBuilder('swap')
-      .leftJoinAndSelect('swap.pool', 'pool');
+      .leftJoinAndSelect('swap.pair', 'pair');
 
-    const metadata = this.v3SwapRepository.metadata;
+    const metadata = this.v2SwapRepository.metadata;
 
     this.gqlWhereParsingService.parse(queryBuilder, where, metadata);
 
@@ -57,29 +57,26 @@ export class V3SwapService {
     minimalTimestamp,
     skip,
     where,
-  }: V3SwapServiceFindByMinimalTimestampProps): Promise<V3Swap[]> {
+  }: V2SwapServiceFindByMinimalTimestampProps): Promise<V2Swap[]> {
     if (!where) {
-      return this.v3SwapRepository.find({
+      return this.v2SwapRepository.find({
         skip: skip,
         where: {
           txTimestamp: MoreThan(minimalTimestamp),
         },
-        order: {
-          id: 'DESC',
-        },
       });
     }
 
-    const queryBuilder = this.v3SwapRepository
+    const queryBuilder = this.v2SwapRepository
       .createQueryBuilder('swap')
       .leftJoinAndSelect('swap.pool', 'pool');
 
-    const metadata = this.v3SwapRepository.metadata;
+    const metadata = this.v2SwapRepository.metadata;
 
     this.gqlWhereParsingService.parse(queryBuilder, where, metadata);
 
     const swaps = queryBuilder
-      .andWhere('swap.txTimestamp > :minTimestamp', {
+      .andWhere('swap.tx_timestamp > :minTimestamp', {
         minTimestamp: minimalTimestamp,
       })
       .orderBy('swap.id', 'DESC')
@@ -89,7 +86,7 @@ export class V3SwapService {
     return swaps;
   }
 
-  async findByID(id: number): Promise<V3Swap | null> {
-    return this.v3SwapRepository.findOneBy({ id: id });
+  async findByID(id: number): Promise<V2Swap | null> {
+    return this.v2SwapRepository.findOneBy({ id: id });
   }
 }

@@ -25,16 +25,18 @@ type Candle {
 }
 
 type Query {
-  candles(chainId: Int!, chartForToken: Int!, poolAddress: String!, timeSpacing: Int!): [Candle!]!
+  candlesForPool(chainId: Int!, chartForToken: Int!, poolAddress: String!, timeSpacing: Int!): [Candle!]!
   on_chain_arbitrages(chainId: Int!): [Arbitrage!]!
   token_impacts: [TokenImpact!]!
   tokens(first: Int, skip: Int, where: TokenWhere): [Token!]!
+  v2swaps(first: Int, fromHead: Boolean, skip: Int, where: V2SwapWhere): [V2Swap!]!
   v3pools(first: Int, skip: Int, where: V3PoolWhere): [V3Pool!]!
   v3swaps(first: Int, fromHead: Boolean, skip: Int, where: V3SwapWhere): [V3Swap!]!
 }
 
 type Subscription {
   swapAdded(chainId: Int!, poolAddress: String!): V3Swap!
+  v2SwapAdded(chainId: Int!, pairAddress: String!): V2Swap!
 }
 
 type Token {
@@ -65,6 +67,43 @@ input TokenWhere {
   name: String
   symbol: String
   usdPrice: String
+}
+
+type V2Pair {
+  address: String!
+  amount0: String!
+  amount1: String!
+  blockNumber: Int!
+  chainId: Int!
+  exchangeName: String!
+  feeTier: Int!
+  isDusty: Boolean!
+  token0: Token!
+  token0Address: String!
+  token1: Token!
+  token1Address: String!
+}
+
+type V2Swap {
+  amount0: String
+  amount1: String
+  archiveToken0UsdPrice: String
+  archiveToken1UsdPrice: String
+  blockNumber: String
+  chainId: String
+  id: String
+  pair: V2Pair
+  pairAddress: String
+  txHash: String
+  txTimestamp: Int
+}
+
+input V2SwapWhere {
+  blockNumber: Float
+  chainId: Float
+  id: Float
+  pairAddress: String
+  txHash: String
 }
 
 type V3Pool {

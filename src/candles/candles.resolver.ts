@@ -13,7 +13,7 @@ export class GQLCandlesResolver {
   ) {}
 
   @Query(() => [Candle])
-  async candles(
+  async candlesForPool(
     @Args('poolAddress', { type: () => String })
     poolAddress: string,
     @Args('chainId', { type: () => Int })
@@ -31,24 +31,21 @@ export class GQLCandlesResolver {
     });
   }
 
-  // @OnEvent(TRANSACTION_EVENTS.TransactionAdded)
-  // async hanleTransactionEvent(transaction: V3Transaction) {
-  //   await this.pubSub.publish(
-  //     getV3TransactionTrigger(transaction.poolAddress, transaction.chainId),
-  //     {
-  //       transactionAdded: transaction,
-  //     },
-  //   );
-  // }
-  // @Subscription(() => V3Transaction, {})
-  // transactionAdded(
-  //   @Args('poolAddress', { type: () => String })
-  //   poolAddress: string,
-  //   @Args('chainId', { type: () => Int })
-  //   chainId: number,
-  // ) {
-  //   return this.pubSub.asyncIterableIterator(
-  //     getV3TransactionTrigger(poolAddress, chainId),
-  //   );
-  // }
+  async candlesForPair(
+    @Args('pairAddress', { type: () => String })
+    pairAddress: string,
+    @Args('chainId', { type: () => Int })
+    chainID: number,
+    @Args('chartForToken', { type: () => Int })
+    chartForToken: number,
+    @Args('timeSpacing', { type: () => Int })
+    timeSpacing: number,
+  ): Promise<Candle[]> {
+    return this.candlesService.findForV2Pair({
+      pairAddress,
+      chainID,
+      chartForToken,
+      timeSpacing,
+    });
+  }
 }
