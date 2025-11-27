@@ -79,4 +79,20 @@ export class V2Pair {
   @Field(() => Int)
   @Column('integer', { name: 'block_number', nullable: true })
   blockNumber: number | null;
+
+  @Field(() => String)
+  @Column('numeric', {
+    name: 'zfo_10usd_rate',
+    nullable: true,
+    default: () => '0',
+  })
+  zfo_10usdRate: string | null;
+
+  @Field(() => String)
+  @Column('numeric', {
+    name: 'non_zfo_10usd_rate',
+    nullable: true,
+    default: () => '0',
+  })
+  nonZfo_10usdRate: string | null;
 }

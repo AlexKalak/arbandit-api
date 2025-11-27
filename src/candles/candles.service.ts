@@ -71,7 +71,7 @@ export class CandlesService {
     }
 
     const minimalTimestamp =
-      Math.floor(new Date().getTime() / 1000) - 4000 * 60;
+      Math.floor(new Date().getTime() / 1000) - 1000 * 60;
 
     const swaps = await this.v3SwapService.findByMinimalTimestamp({
       minimalTimestamp,
@@ -112,16 +112,20 @@ export class CandlesService {
           const diff = flooredTxTimestamp - lastTimeStamp;
           const amountOfEmptyCandles = Math.floor(diff / timeSpacing) - 1;
 
-          for (let i = 0; i < amountOfEmptyCandles; i++) {
-            candles.push({
-              uuid: randomUUID().toString(),
-              open: lastPrice,
-              close: lastPrice,
-              high: lastPrice,
-              low: lastPrice,
-              timestamp: lastTimeStamp + (i + 1) * timeSpacing,
-              amountSwaps: 0,
-            });
+          if (amountOfEmptyCandles < 1000) {
+            for (let i = 0; i < amountOfEmptyCandles; i++) {
+              candles.push({
+                uuid: randomUUID().toString(),
+                open: lastPrice,
+                close: lastPrice,
+                high: lastPrice,
+                low: lastPrice,
+                timestamp: lastTimeStamp + (i + 1) * timeSpacing,
+                amountSwaps: 0,
+              });
+            }
+          } else {
+            candles.length = 0;
           }
         }
         lastTimeStamp = flooredTxTimestamp;
@@ -216,16 +220,20 @@ export class CandlesService {
           const diff = flooredTxTimestamp - lastTimeStamp;
           const amountOfEmptyCandles = Math.floor(diff / timeSpacing) - 1;
 
-          for (let i = 0; i < amountOfEmptyCandles; i++) {
-            candles.push({
-              uuid: randomUUID().toString(),
-              open: lastPrice,
-              close: lastPrice,
-              high: lastPrice,
-              low: lastPrice,
-              timestamp: lastTimeStamp + (i + 1) * timeSpacing,
-              amountSwaps: 0,
-            });
+          if (amountOfEmptyCandles < 1000) {
+            for (let i = 0; i < amountOfEmptyCandles; i++) {
+              candles.push({
+                uuid: randomUUID().toString(),
+                open: lastPrice,
+                close: lastPrice,
+                high: lastPrice,
+                low: lastPrice,
+                timestamp: lastTimeStamp + (i + 1) * timeSpacing,
+                amountSwaps: 0,
+              });
+            }
+          } else {
+            candles.length = 0;
           }
         }
         lastTimeStamp = flooredTxTimestamp;

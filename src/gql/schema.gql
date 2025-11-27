@@ -78,10 +78,12 @@ type V2Pair {
   exchangeName: String!
   feeTier: Int!
   isDusty: Boolean!
+  nonZfo_10usdRate: String!
   token0: Token!
   token0Address: String!
   token1: Token!
   token1Address: String!
+  zfo_10usdRate: String!
 }
 
 type V2Swap {
